@@ -1,0 +1,36 @@
+name: check
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"   # Monday, so a broken nixpkgs input is noticed early
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      # Evaluates every output the flake defines, including each
+      # nixosConfiguration. Catches renamed options, type errors and typos.
+      # It does NOT build the system: that needs hours and more disk than a
+      # free runner has.
+      - name: nix flake check
+        run: nix flake check --all-systems --no-build
+
+      # Names every host so a failure says which one, rather than failing
+      # somewhere inside a combined evaluation.
+      - name: Evaluate each host
+        run: |
+          hosts=$(nix eval --json --apply builtins.attrNames \
+                    .#nixosConfigurations 2>/dev/null | tr -d '[]"' | tr ',' ' ')
+          for h in $hosts; do
+            echo "::group::$h"
+            nix eval --raw ".#nixosConfigurations.$h.config.system.build.toplevel.drvPath"
+            echo
+            echo "::endgroup::"
+          done
