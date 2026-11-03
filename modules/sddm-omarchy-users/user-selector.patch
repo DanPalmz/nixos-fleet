@@ -1,0 +1,126 @@
+--- a/Main.qml
++++ b/Main.qml
+@@ -7,11 +7,27 @@
+   height: 480
+   color: "#1a1b26"
+ 
+-  property string currentUser: userModel.lastUser || userModel.data(userModel.index(0, 0), Qt.UserRole + 1) || ""
++  property string currentUser: {
++    for (var i = 0; i < userModel.rowCount(); i++) {
++      if (userModel.data(userModel.index(i, 0), Qt.UserRole + 1) === userModel.lastUser)
++        return userModel.lastUser
++    }
++    return userModel.data(userModel.index(0, 0), Qt.UserRole + 1) || ""
++  }
+   property bool loginFailed: false
++  property var preferredSessions: @preferredSessions@
++  // SDDM SessionModel::NameRole is Qt::UserRole + 4, not DisplayRole.
+   property int sessionIndex: {
++    var preferred = root.preferredSessions[root.currentUser]
++    if (preferred) {
++      for (var j = 0; j < sessionModel.rowCount(); j++) {
++        var candidate = (sessionModel.data(sessionModel.index(j, 0), Qt.UserRole + 4) || "").toString()
++        if (candidate === preferred)
++          return j
++      }
++    }
+     for (var i = 0; i < sessionModel.rowCount(); i++) {
+-      var name = (sessionModel.data(sessionModel.index(i, 0), Qt.DisplayRole) || "").toString()
++      var name = (sessionModel.data(sessionModel.index(i, 0), Qt.UserRole + 4) || "").toString()
+       if (name.indexOf("uwsm") !== -1)
+         return i
+     }
+@@ -41,6 +57,47 @@
+       height: sourceSize.width > 0 ? Math.round(width * sourceSize.height / sourceSize.width) : 0
+       fillMode: Image.PreserveAspectFit
+       anchors.horizontalCenter: parent.horizontalCenter
++    }
++
++    Column {
++      anchors.horizontalCenter: parent.horizontalCenter
++      width: Math.min(400, root.width * 0.8)
++      spacing: 10
++
++      Repeater {
++        id: userButtons
++        model: userModel
++        Button {
++          property string accountName: model.name
++          objectName: "user-" + accountName
++          width: parent.width
++          height: 52
++          text: accountName
++          font.family: "JetBrainsMono Nerd Font"
++          font.pixelSize: 20
++          color: root.currentUser === accountName ? "#364a82" : "#24283b"
++          activeColor: "#414868"
++          pressedColor: "#7aa2f7"
++          textColor: "#c0caf5"
++          activeFocusOnTab: true
++          Accessible.role: Accessible.Button
++          Accessible.name: "Sign in as " + accountName
++          KeyNavigation.tab: index + 1 < userButtons.count ? userButtons.itemAt(index + 1) : password
++          KeyNavigation.backtab: index > 0 ? userButtons.itemAt(index - 1) : password
++          onClicked: {
++            root.currentUser = accountName
++            password.forceActiveFocus()
++          }
++        }
++      }
++
++      Text {
++        anchors.horizontalCenter: parent.horizontalCenter
++        text: "Desktop: " + (sessionModel.data(sessionModel.index(root.sessionIndex, 0), Qt.UserRole + 4) || "")
++        color: "#c0caf5"
++        font.family: "JetBrainsMono Nerd Font"
++        font.pixelSize: 16
++      }
+     }
+ 
+     Row {
+@@ -84,6 +141,15 @@
+ 
+         TextInput {
+           id: password
++          objectName: "password"
++          Keys.onTabPressed: function(event) {
++            root.focusSelectedUser()
++            event.accepted = true
++          }
++          Keys.onBacktabPressed: function(event) {
++            root.focusSelectedUser()
++            event.accepted = true
++          }
+           anchors.fill: parent
+           anchors.leftMargin: 20
+           anchors.rightMargin: 20
+@@ -101,7 +167,7 @@
+ 
+           onTextChanged: root.loginFailed = false
+ 
+-          Keys.onPressed: {
++          Keys.onPressed: function(event) {
+             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+               sddm.login(root.currentUser, password.text, root.sessionIndex)
+               event.accepted = true
+@@ -113,5 +179,20 @@
+ 
+   }
+ 
++  function focusSelectedUser() {
++    for (var i = 0; i < userButtons.count; i++) {
++      var button = userButtons.itemAt(i)
++      if (button.accountName === root.currentUser) {
++        button.forceActiveFocus()
++        return
++      }
++    }
++  }
++
++  onCurrentUserChanged: {
++    password.text = ""
++    root.loginFailed = false
++  }
++
+   Component.onCompleted: password.forceActiveFocus()
+ }

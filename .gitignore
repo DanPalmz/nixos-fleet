@@ -1,0 +1,21 @@
+# Build outputs. `nix build` drops these symlinks into the flake directory;
+# they point into the store and mean nothing on another machine.
+result
+result-*
+
+# Direnv / editor state
+.direnv/
+.envrc.local
+*.swp
+.DS_Store
+
+# Plaintext secrets. Anything encrypted -- *.age, sops-managed YAML -- is
+# meant to be committed and is deliberately NOT ignored here.
+*.key
+*.pem
+id_rsa
+id_ed25519
+.env
+.env.*
+secrets.txt
+secrets/*.txt

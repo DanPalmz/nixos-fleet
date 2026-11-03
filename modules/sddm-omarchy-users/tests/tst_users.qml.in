@@ -1,0 +1,98 @@
+import QtQuick 2.0
+import QtTest 1.3
+
+TestCase {
+  id: testCase
+  name: "OmarchyUserSelector"
+  when: windowShown
+  visible: true
+  width: 1280
+  height: 720
+  property var screenModel: QtObject { property var geometry: [{width:1280,height:720}] }
+  property var userModel: ListModel {
+    property string lastUser: "dan"
+    ListElement { name: "dan" }
+    ListElement { name: "nathan" }
+    ListElement { name: "starbird-paperclip" }
+    function rowCount() { return count }
+    function index(row, column) { return row }
+    function data(row, role) { return row >= 0 && row < count ? get(row).name : "" }
+  }
+  property var sessionModel: QtObject {
+    property int lastIndex: 0
+    property var names: ["Hyprland (uwsm)", "Xfce Session"]
+    function rowCount() { return names.length }
+    function index(row, column) { return row }
+    function data(row, role) { return role === Qt.UserRole + 4 ? names[row] : undefined }
+  }
+  property var sddm: QtObject {
+    signal loginFailed()
+    signal loginSucceeded()
+    property string submittedUser: ""
+    property int submittedSession: -1
+    function login(user, password, session) { submittedUser = user; submittedSession = session }
+  }
+  property var theme
+  function init() {
+    userModel.lastUser = "dan"
+    var c = Qt.createComponent("@themePath@/Main.qml")
+    compare(c.status, Component.Ready, c.errorString())
+    theme = c.createObject(testCase, {width:1280,height:720})
+    verify(theme !== null)
+    wait(100)
+  }
+  function cleanup() { theme.destroy(); wait(50) }
+  function test_accountSelection() {
+    var nathanButton = findChild(theme, "user-nathan")
+    var password = findChild(theme, "password")
+    compare(theme.currentUser, "dan")
+    compare(theme.sessionIndex, 0)
+    password.text = "unsent-password"
+    mouseClick(nathanButton, nathanButton.width / 2, nathanButton.height / 2)
+    compare(theme.currentUser, "nathan")
+    compare(theme.sessionIndex, 1)
+    compare(password.text, "")
+    password.forceActiveFocus()
+    password.text = "test-password"
+    keyClick(Qt.Key_Return)
+    compare(sddm.submittedUser, "nathan")
+    compare(sddm.submittedSession, 1)
+    sddm.loginFailed()
+    compare(password.text, "")
+    // Upstream password clearing also resets its transient failure flag.
+  }
+  function test_keyboardAndMouse() {
+    var danButton = findChild(theme, "user-dan")
+    var nathanButton = findChild(theme, "user-nathan")
+    var password = findChild(theme, "password")
+    password.forceActiveFocus()
+    keyClick(Qt.Key_Tab)
+    verify(danButton.activeFocus)
+    keyClick(Qt.Key_Tab)
+    verify(nathanButton.activeFocus)
+    keyClick(Qt.Key_Return)
+    compare(theme.currentUser, "nathan")
+    compare(theme.sessionIndex, 1)
+    verify(password.activeFocus)
+    mouseClick(danButton, danButton.width / 2, danButton.height / 2)
+    compare(theme.currentUser, "dan")
+    compare(theme.sessionIndex, 0)
+    wait(250)
+    var saved = false
+    theme.grabToImage(function(result) { saved = result.saveToFile("/tmp/sddm-buttons-preview.png") })
+    tryVerify(function() { return saved }, 3000)
+  }
+  function test_missingPreferredSession() {
+    findChild(theme, "user-nathan").clicked()
+    compare(theme.sessionIndex, 1)
+    sessionModel.names = ["Hyprland (uwsm)"]
+    compare(theme.sessionIndex, 0)
+    sessionModel.names = ["Hyprland (uwsm)", "Xfce Session"]
+  }
+  function test_missingLastUser() {
+    userModel.lastUser = "deleted-user"
+    wait(10)
+    compare(theme.currentUser, "dan")
+    compare(theme.sessionIndex, 0)
+  }
+}
