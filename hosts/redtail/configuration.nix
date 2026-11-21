@@ -36,6 +36,7 @@ in
     ./hardware-configuration.nix
     ./users.nix
     ../../modules/sddm-omarchy-users
+#    ../../modules/e2b-embed
     # nixarchy-apply copies your app selection here. Without this line the
     # menu marks apps enabled and nothing is ever installed.
     ./nixarchy-apps.nix
@@ -46,6 +47,13 @@ in
       hostname-mode = "none";
     };
   };
+
+#  local.e2b-embed.enable = true;
+#  local.e2b-embed.lan = {
+#    enable = true;
+#    address = "10.11.196.5";
+#    subnet = "10.11.196.0/24";
+#  };
 
   time.timeZone = "Australia/Sydney";
   console.keyMap = "us";

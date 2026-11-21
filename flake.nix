@@ -101,6 +101,7 @@
             nixarchy.nixosModules.nixarchy
             nixarchy.inputs.home-manager.nixosModules.home-manager
             nixarchy.inputs.disko.nixosModules.disko
+            ./modules/common
             "${self}/hosts/${name}"
           ];
         }

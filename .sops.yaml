@@ -1,0 +1,24 @@
+# Public recipients only. Replace BOTH placeholders before encrypting secrets.
+# Admin: your existing age recipient (keep this for editing/recovery).
+# em-lappy: convert /etc/ssh/ssh_host_ed25519_key.pub on that laptop with ssh-to-age.
+# Never copy a private key into this repository.
+keys:
+#  - &admin age1REPLACE_WITH_YOUR_ADMIN_PUBLIC_RECIPIENT
+  - &redtail age156z3fnr90ch87xxp7agsmcvs6q3ncflg6sckk3ytegdppqyvjq4sx4fr96
+  - &em_lappy age18ts28e6ulttea4h6smglw3wpuccjvdzsm02wllyk6p6lwz8mugmscl9y8u
+
+creation_rules:
+  # Shared by every family host: add each host's public recipient here,
+  # then run: sops updatekeys secrets/family-wifi.yaml
+  - path_regex: ^secrets/family-wifi\.yaml$
+    key_groups:
+      - age:
+          - *redtail
+          - *em_lappy
+
+  # Optional host-local secrets for em-lappy, kept separate from shared Wi-Fi.
+  - path_regex: ^hosts/em-lappy/secrets\.yaml$
+    key_groups:
+      - age:
+          - *redtail
+          - *em_lappy

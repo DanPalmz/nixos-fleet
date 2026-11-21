@@ -1,0 +1,2 @@
+# Deliberately non-secret fixture, only used with validateSopsFiles = false.
+environment: test-placeholder

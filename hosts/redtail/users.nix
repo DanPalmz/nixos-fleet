@@ -2,18 +2,12 @@
 { ... }:
 {
   imports = [
-    ../../users/dan
     ../../users/nathan
     ../../users/agents
+    ../../users/test-runners
   ];
 
   users.users.dan = {
-    extraGroups = [
-      "wheel"
-      "video"
-      "input"
-      "i2c"
-    ];
     # Keep the password hash outside both git and the world-readable Nix store.
     hashedPasswordFile = "/var/lib/nixarchy/password.hash";
   };
