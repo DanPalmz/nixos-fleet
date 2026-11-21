@@ -23,6 +23,12 @@
 {
   inputs.tuios.url = "github:Gaurav-Gosain/tuios";  #@flake-input tuios
   inputs = {
+    pangolin-cli = {
+      # Update just this client: nix flake update pangolin-cli --refresh
+      url = "github:fosrl/cli/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Your package set. Locked at install time; `nix flake update nixpkgs` (or
     # `omarchy update`) moves it forward when you decide to.
     #

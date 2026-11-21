@@ -1522,6 +1522,27 @@
         "type": "github"
       }
     },
+    "pangolin-cli": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795126902,
+        "narHash": "sha256-7qsVrbgBPk68ZzBn8v1AJqp9X3puPlglvRRGzVSUsWU=",
+        "owner": "fosrl",
+        "repo": "cli",
+        "rev": "bb03d2c45ce79213c4c9b206bbd87e9846be5a9a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "fosrl",
+        "ref": "main",
+        "repo": "cli",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -1549,6 +1570,7 @@
       "inputs": {
         "nixarchy": "nixarchy",
         "nixpkgs": "nixpkgs_2",
+        "pangolin-cli": "pangolin-cli",
         "tuios": "tuios"
       }
     },

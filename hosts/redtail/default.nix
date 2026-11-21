@@ -56,5 +56,8 @@
     ./nixarchy-hardware.nix
 
     ./configuration.nix
+
+    ../../modules/nix-builder-cache.nix
+
   ];
 }
