@@ -62,6 +62,22 @@ Only committed and pushed changes reach the laptop. Unpushed local configuration
 can be superseded by the remote system configuration at the next timer run;
 the timer does not perform a Git pull into the local checkout.
 
+Nix fetches the remote flake into an immutable `/nix/store/...-source` snapshot.
+Deploying over SSH likewise copies the system closure, not this repository.
+Nixarchy's editing/app-selection tools still use the writable `/etc/nixos`
+checkout, which must be cloned or updated separately. Do not point editing tools
+at the store snapshot. Before updating the laptop's checkout, inspect it:
+
+```sh
+git -C /etc/nixos remote -v
+git -C /etc/nixos status --short
+```
+
+If it is a clean clone of this repository on the intended branch, update it
+with `git -C /etc/nixos pull --ff-only`. If it is the original installer repo
+or contains local changes, back it up and reconcile those changes before
+replacing it. Automatic updates do not reset or overwrite that checkout.
+
 Until em-lappy's configuration is committed and pushed, do not activate its
 automatic updater: the remote repository will not yet have the host attribute.
 Failure diagnostics:

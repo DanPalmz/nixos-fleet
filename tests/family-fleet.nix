@@ -11,6 +11,7 @@ let
     permissions = wheel == [ "carly" "dan" "paul" ];
     fleetDan = builtins.all (host: host.config.users.users.dan.isNormalUser
       && builtins.elem "wheel" host.config.users.users.dan.extraGroups
+      && builtins.elem "dan" host.config.nix.settings.trusted-users
       && host.config.home-manager.users.dan.programs.nixarchy.enable)
       (builtins.attrValues flake.nixosConfigurations);
     farmGroup = builtins.all (name: builtins.elem "primrosevalleyfarm" c.users.users.${name}.extraGroups)
